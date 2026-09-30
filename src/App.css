@@ -282,3 +282,70 @@
 .chat-header, .message-input {
   flex-shrink: 0;
 }
+
+@media (max-width: 900px) {
+  .app {
+    padding: 0;
+  }
+
+  .messenger {
+    max-width: none;
+    height: 100vh;
+    min-height: 0;
+
+    grid-template-columns: 280px minmax(0, 1fr);
+
+    border-radius: 0;
+  }
+
+  .message-list {
+    padding: 20px 4%;
+  }
+
+  .message {
+    max-width: 75%;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .messenger {
+    display: block;
+  }
+
+  .messenger__sidebar {
+    width: 100%;
+    height: 100%;
+
+    border-right: none;
+  }
+
+  .messenger__empty {
+    display: none;
+  }
+
+  .chat {
+    width: 100%;
+    height: 100%;
+  }
+
+  .message-list {
+    padding: 16px 12px;
+  }
+
+  .message {
+    max-width: 85%;
+  }
+
+  .message-input {
+    padding: 8px 10px;
+  }
+
+  .message-input button {
+    padding: 0 14px;
+  }
+
+  .messenger__sidebar--chat-started {
+    display: none;
+  }
+}

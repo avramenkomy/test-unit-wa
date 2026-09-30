@@ -134,7 +134,11 @@ function App() {
   return (
     <main className="app">
       <div className="messenger">
-        <aside className="messenger__sidebar">
+        <aside
+          className={`messenger__sidebar ${
+            isStartedChat ? 'messenger__sidebar--chat-started' : ''
+          }`}
+        >
           <h1>Client Is Like WhatsApp</h1>
 
           {!isStartedChat && (
