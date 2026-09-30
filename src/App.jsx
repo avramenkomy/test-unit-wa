@@ -131,6 +131,13 @@ function App() {
   }
 
 
+  const handleCloseChat = () => {
+    setIsStartedChat(false);
+    setPhoneNumber('');
+    setMessages([]);
+  }
+
+
   return (
     <main className="app">
       <div className="messenger">
@@ -155,6 +162,7 @@ function App() {
               phoneNumber={phoneNumber}
               messages={messages}
               onSend={handleSendMessage}
+              onClose={handleCloseChat}
             />
           : <section className="messenger__empty">
               <h2>Client Is Like WhatsApp</h2>

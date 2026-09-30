@@ -4,11 +4,11 @@ import MessageInput from './MessageInput';
 
 
 function Chat(props) {
-  const { phoneNumber, messages, onSend } = props;
+  const { phoneNumber, messages, onSend, onClose } = props;
 
   return (
     <section className="chat">
-      <ChatHeader phoneNumber={phoneNumber} />
+      <ChatHeader phoneNumber={phoneNumber} onClose={onClose} />
 
       <MessageList messages={messages} />
 
