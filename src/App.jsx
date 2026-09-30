@@ -5,8 +5,7 @@ function App() {
   const [apiUrl, setApiUrl] = useState('');
   const [idInstance, setIdInstance] = useState('');
   const [apiTokenInstance, setApiTokenInstance] = useState('');
-  // const [phoneNumber, setPhoneNumber] = useState('');
-  const [chatId, setChatId] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [messageContent, setMessageContent] = useState('');
   const [result, setResult] = useState('');
 
@@ -39,12 +38,14 @@ function App() {
     try {
       setResult('Sending...');
 
+      const chatId = `${phoneNumber.replace(/\D/g, "")}@c.us`;
+
       const requestParams = {
         apiUrl,
         idInstance,
         apiTokenInstance,
         chatId,
-        messageContent,
+        message: messageContent,
       }
 
       const response = await sendMessage(requestParams);
@@ -99,11 +100,11 @@ function App() {
 
         <div>
           <label>
-            Chat Id
+            Phone Number
 
             <input
-              value={chatId}
-              onChange={event => setChatId(event.target.value)}
+              value={phoneNumber}
+              onChange={event => setPhoneNumber(event.target.value)}
               placeholder="79991234567"
             />
           </label>
