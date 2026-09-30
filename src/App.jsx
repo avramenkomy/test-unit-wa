@@ -19,13 +19,15 @@ function App() {
   const [isStartedChat, setIsStartedChat] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [messages, setMessages] = useState([]);
+  const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [result, setResult] = useState('');
 
 
   const handleCheckInstance = async () => {
     try {
-      setResult('Checked instance...');
+      setIsConnecting(true);
+      setResult('');
 
       const requestParams = {
         apiUrl,
@@ -36,16 +38,19 @@ function App() {
       const response = await getStateInstance(requestParams);
 
       if (response.stateInstance === 'authorized') {
-        setResult('Instance state: authorized');
+        // setResult('Instance state: authorized');
         setIsConnected(true);
         return;
       }
 
       setResult(`Instance state: ${response.stateInstance}`);
     } catch (error) {
-      console.error(error);
-      setResult('Failed check instance');
+      console.error('Connection error: ', error);
+
+      setResult('Failed to connect. Please, check credentials for instance.');
       setIsConnected(false);
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -53,9 +58,8 @@ function App() {
   const handleCreateChat = () => {
     const normalizedPhoneNumber = phoneNumber.replace(/\D/g, '');
 
-    if (!normalizedPhoneNumber) return;
-
     setPhoneNumber(normalizedPhoneNumber);
+    setMessages([]);
     setIsStartedChat(true);
   }
 
@@ -87,7 +91,7 @@ function App() {
 
     } catch (error) {
       console.error('Send message error: ', error);
-      setResult('Error sending message.');
+      throw error;
     }
   }
 
@@ -124,6 +128,7 @@ function App() {
           onIdInstanceChange={setIdInstance}
           onApiTokenInstanceChange={setApiTokenInstance}
           onConnect={handleCheckInstance}
+          isConnecting={isConnecting}
           result={result}
         />
       </main>

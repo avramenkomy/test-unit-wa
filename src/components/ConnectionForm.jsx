@@ -2,7 +2,7 @@ function ConnectionForm(props) {
   const {
     apiUrl, idInstance, apiTokenInstance,
     onApiUrlChange, onIdInstanceChange, onApiTokenInstanceChange,
-    onConnect, result,
+    onConnect, isConnecting, result,
   } = props;
 
   const handleSubmit = event => {
@@ -45,7 +45,9 @@ function ConnectionForm(props) {
           />
         </label>
 
-        <button type="submit">Connect</button>
+        <button type="submit" disabled={isConnecting}>
+          {isConnecting ? 'Connecting...' : 'Connect'}
+        </button>
 
         {result && <p>{result}</p>}
       </form>
