@@ -6,13 +6,16 @@ import {
   sendMessage, getStateInstance,
 } from './api/greenApi';
 
+import ConnectionForm from './components/ConnectionForm';
+import Chat from './components/Chat';
+import NewChatForm from './components/NewChatForm';
 
 function App() {
   const [apiUrl, setApiUrl] = useState('');
   const [idInstance, setIdInstance] = useState('');
   const [apiTokenInstance, setApiTokenInstance] = useState('');
+  const [isStartedChat, setIsStartedChat] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [messageContent, setMessageContent] = useState('');
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [result, setResult] = useState('');
@@ -45,31 +48,44 @@ function App() {
   };
 
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleCreateChat = () => {
+    const normalizedPhoneNumber = phoneNumber.replace(/\D/g, '');
 
+    if (!normalizedPhoneNumber) return;
+
+    setPhoneNumber(normalizedPhoneNumber);
+    setIsStartedChat(true);
+  }
+
+
+  const handleSendMessage = async text => {
     try {
-      setResult('Sending...');
-
-      const chatId = `${phoneNumber.replace(/\D/g, "")}@c.us`;
+      const chatId = `${phoneNumber.replace(/\D/g, '')}@c.us`;
 
       const requestParams = {
         apiUrl,
         idInstance,
         apiTokenInstance,
         chatId,
-        message: messageContent,
+        message: text,
       }
 
       const response = await sendMessage(requestParams);
 
-      console.log('Green Api response: ', response);
-
-      setResult(`Message has been send with id:  ${response.idMessage}`);
+      setMessages(prevState => [
+        ...prevState,
+        {
+          id: response.idMessage,
+          chatId,
+          text,
+          direction: 'outgoing',
+          timestamp: Math.floor(Date.now() / 1000),
+        }
+      ]);
 
     } catch (error) {
-      console.error(error);
-      setResult('Error sending message');
+      console.error('Send message error: ', error);
+      setResult('Error sending message.');
     }
   }
 
@@ -77,7 +93,13 @@ function App() {
   const handleIncomingMessage = useCallback((incomingMessage) => {
     console.log('Incoming Message: ', incomingMessage);
 
-    setMessages(prevState => [ ...prevState, incomingMessage]);
+    setMessages(prevState => [
+      ...prevState,
+      {
+        ...incomingMessage,
+        direction: 'incoming'
+      }
+    ]);
   }, []);
 
   useNotifications({
@@ -89,89 +111,51 @@ function App() {
   });
 
 
+  if (!isConnected) {
+    return (
+      <main className="app">
+        <ConnectionForm
+          apiUrl={apiUrl}
+          idInstance={idInstance}
+          apiTokenInstance={apiTokenInstance}
+          onApiUrlChange={setApiUrl}
+          onIdInstanceChange={setIdInstance}
+          onApiTokenInstanceChange={setApiTokenInstance}
+          onConnect={handleCheckInstance}
+          result={result}
+        />
+      </main>
+    )
+  }
+
+
   return (
-    <main>
-      <h1>MAX Chat</h1>
+    <main className="app">
+      <div className="messenger">
+        <aside className="messenger__sidebar">
+          <h1>Client Is Like WhatsApp</h1>
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>
-            API Url
-
-            <input
-              value={apiUrl}
-              onChange={event => setApiUrl(event.target.value)}
-              placeholder="https://..."
+          {!isStartedChat && (
+            <NewChatForm
+              phoneNumber={phoneNumber}
+              onPhoneNumberChange={setPhoneNumber}
+              onCreateChat={handleCreateChat}
             />
-          </label>
-        </div>
+          )}
+        </aside>
 
-        <div>
-          <label>
-            idInstance
-
-            <input
-              value={idInstance}
-              onChange={event => setIdInstance(event.target.value)}
+        {isStartedChat
+          ? <Chat
+              phoneNumber={phoneNumber}
+              messages={messages}
+              onSend={handleSendMessage}
             />
-          </label>
-        </div>
+          : <section className="messenger__empty">
+              <h2>Client Is Like WhatsApp</h2>
 
-        <div>
-          <label>
-            apiTokenInstance
-            <input
-              value={apiTokenInstance}
-              onChange={event => setApiTokenInstance(event.target.value)}
-            />
-          </label>
-        </div>
-
-        <div>
-          <label>
-            Phone Number
-
-            <input
-              value={phoneNumber}
-              onChange={event => setPhoneNumber(event.target.value)}
-              placeholder="79991234567"
-            />
-          </label>
-        </div>
-
-        <div>
-          <label>
-            Message
-
-            <input
-              value={messageContent}
-              onChange={event => setMessageContent(event.target.value)}
-              placeholder="Please, enter your message"
-
-            />
-          </label>
-        </div>
-
-        <button type="button" onClick={handleCheckInstance}>
-          Check instance
-        </button>
-
-        <button type="submit">
-          Send
-        </button>
-      </form>
-
-      {result && <p>{result}</p>}
-
-      <div>
-        <h2>Messages</h2>
-
-        {messages.map(message => (
-          <div key={message.id}>
-            <strong>{message.senderName}</strong>
-            <p>{message.text}</p>
-          </div>
-        ))}
+              <p>Enter target phone number, to begin chat</p>
+            </section>
+        }
       </div>
     </main>
   )

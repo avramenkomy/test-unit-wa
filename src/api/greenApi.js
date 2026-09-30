@@ -39,7 +39,7 @@ export const sendMessage = async ({
 export const receiveNotification = async ({
   apiUrl, idInstance, apiTokenInstance,
 }) => {
-  const url = `${apiUrl}/waInstance${idInstance}/receiveNotification/${apiTokenInstance}`;
+  const url = `${apiUrl}/waInstance${idInstance}/receiveNotification/${apiTokenInstance}?receiveTimeout=15`;
 
   const response = await axios.get(url);
 

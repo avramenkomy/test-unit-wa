@@ -33,7 +33,10 @@ export const useNotifications = ({
 
             if (!isActive) return;
 
-            if (!notification) continue;
+            if (!notification) {
+              await new Promise(res => setTimeout(res, 500));
+              continue;
+            };
 
             const { receiptId, body } = notification;
 
@@ -47,16 +50,16 @@ export const useNotifications = ({
               }
 
               onMessage(incomingMessage);
-
-              const deleteRequestParams = {
-                apiUrl,
-                idInstance,
-                apiTokenInstance,
-                receiptId,
-              }
-
-              await deleteNotification(deleteRequestParams);
             }
+
+            const deleteRequestParams = {
+              apiUrl,
+              idInstance,
+              apiTokenInstance,
+              receiptId,
+            }
+
+            await deleteNotification(deleteRequestParams);
 
           } catch (error) {
             console.error('Polling error: ', error);
