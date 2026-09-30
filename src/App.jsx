@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { sendMessage, getStateInstance } from './api/greenApi';
+import {
+  sendMessage, getStateInstance, receiveNotification, deleteNotification
+} from './api/greenApi';
+
+import {
+  INCOMING_MESSAGE_RECEIVED,
+  TEXT_MESSAGE,
+} from './constants';
 
 function App() {
   const [apiUrl, setApiUrl] = useState('');
@@ -59,6 +66,56 @@ function App() {
       setResult('Error sending message');
     }
   }
+
+
+  const handleReceiveNotification = async () => {
+    try {
+      const requestParams = {
+        apiUrl,
+        idInstance,
+        apiTokenInstance,
+      }
+
+      const response = await receiveNotification(requestParams);
+
+      console.log('Notification: ', response);
+
+      if (!response) {
+        setResult('New notifications not found.');
+        return;
+      }
+
+      const { receiptId, body } = response;
+
+      if (body.typeWebhook === INCOMING_MESSAGE_RECEIVED && body.messageData?.typeMessage === TEXT_MESSAGE) {
+        const senderName = body.senderData?.senderName;
+        const text = body.messageData?.textMessageData?.textMessage;
+
+        console.group('MessageData:');
+        console.log('Sender: ', senderName);
+        console.log('Message: ', text);
+        console.groupEnd();
+
+        setResult(`${senderName}: ${text}`);
+      }
+
+      const deleteRequestParams = {
+        apiUrl,
+        idInstance,
+        apiTokenInstance,
+        receiptId,
+      }
+
+      await deleteNotification(deleteRequestParams);
+
+      console.log(`Notification ${receiptId} has been removed.`);
+
+    } catch (error) {
+      console.error('Receive Notification Error: ', error);
+      setResult('Notofications receiving error');
+    }
+  }
+
 
   return (
     <main>
@@ -129,6 +186,11 @@ function App() {
 
         <button type="submit">
           Send
+        </button>
+
+        {/* Temporary button, must be remove after developing */}
+        <button onClick={handleReceiveNotification} type="button">
+          Get Notification
         </button>
       </form>
 
