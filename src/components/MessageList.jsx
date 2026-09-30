@@ -1,4 +1,13 @@
+import { useEffect, useRef } from 'react';
+
+
 function MessageList({ messages }) {
+
+  const bottomRef = useRef();
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const formatTime = timestamp => {
     if (!timestamp) {
@@ -26,6 +35,8 @@ function MessageList({ messages }) {
           <span className="message__time">{formatTime(message.timestamp)}</span>
         </div>
       ))}
+
+      <div ref={bottomRef} />
     </div>
   )
 }

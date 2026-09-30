@@ -11,10 +11,11 @@
   width: 100%;
   max-width: 1400px;
   height: calc(100vh - 48px);
-  min-height: 600px;
+  min-height: 0;
 
   display: grid;
-  grid-template-columns: 360px 1fr;
+  grid-template-columns: 360px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
 
   background: #ffffff;
 
@@ -110,10 +111,13 @@
 
 .chat {
   min-width: 0;
+  min-height: 0;
   height: 100%;
 
   display: flex;
   flex-direction: column;
+
+  overflow: hidden;
 
   background: #efeae2;
 }
@@ -164,7 +168,8 @@
 }
 
 .message-list {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
 
   display: flex;
   flex-direction: column;
@@ -173,6 +178,7 @@
   padding: 24px 7%;
 
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .message {
@@ -271,4 +277,8 @@
 
 .message-input button:hover {
   background: #008f72;
+}
+
+.chat-header, .message-input {
+  flex-shrink: 0;
 }
