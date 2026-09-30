@@ -10,6 +10,8 @@ import ConnectionForm from './components/ConnectionForm';
 import Chat from './components/Chat';
 import NewChatForm from './components/NewChatForm';
 
+import './App.css';
+
 function App() {
   const [apiUrl, setApiUrl] = useState('');
   const [idInstance, setIdInstance] = useState('');

@@ -1,13 +1,13 @@
 function MessageList({ messages }) {
   return (
-    <div className="message__list">
+    <div className="message-list">
       {messages.map(message => (
         <div
           key={message.id}
           className={`message ${
             message.direction === 'outgoing'
               ? 'message--outgoing'
-              : 'message--incomig'
+              : 'message--incoming'
             }`}
         >
           <p>{message.text}</p>
