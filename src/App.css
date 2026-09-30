@@ -190,6 +190,18 @@
   box-shadow: 0 1px 1px rgba(11, 20, 26, 0.08);
 }
 
+.message__time {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #667781;
+  font-size: 11px;
+  line-height: 1;
+
+  text-align: right;
+}
+
 .message p {
   margin: 0;
 
