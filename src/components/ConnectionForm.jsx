@@ -20,8 +20,8 @@ function ConnectionForm(props) {
 
           <p>
             {hasEnvCredentials
-              ? 'Credentials has been loaded. Connect to start messaging.'
-              : 'Enter your GREEN-API credentials for connect.'
+              ? 'Credentials have been loaded. Connect to start messaging.'
+              : 'Enter your GREEN-API credentials to connect.'
             }
           </p>
         </div>

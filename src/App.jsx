@@ -105,7 +105,7 @@ function App() {
 
 
   const handleIncomingMessage = useCallback((incomingMessage) => {
-    const activeChatId = `${phoneNumber.replace(/'D/g, '')}@c.us`;
+    const activeChatId = `${phoneNumber.replace(/\D/g, '')}@c.us`;
 
     if (incomingMessage.chatId !== activeChatId) {
       return;
@@ -127,17 +127,6 @@ function App() {
     enabled: isConnected,
     onMessage: handleIncomingMessage,
   });
-
-
-  if (hasEnvCredentials && isConnecting) {
-    return (
-      <main className="app">
-        <div className="connection">
-          <p>Connecting to WhatsApp</p>
-        </div>
-      </main>
-    )
-  }
 
 
   if (!isConnected) {
