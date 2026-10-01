@@ -28,7 +28,7 @@ function App() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [result, setResult] = useState('');
-  
+
 
   const handleCheckInstance = useCallback(async () => {
     try {
@@ -105,6 +105,12 @@ function App() {
 
 
   const handleIncomingMessage = useCallback((incomingMessage) => {
+    const activeChatId = `${phoneNumber.replace(/'D/g, '')}@c.us`;
+
+    if (incomingMessage.chatId !== activeChatId) {
+      return;
+    }
+
     setMessages(prevState => [
       ...prevState,
       {
@@ -112,7 +118,7 @@ function App() {
         direction: 'incoming'
       }
     ]);
-  }, []);
+  }, [phoneNumber]);
 
   useNotifications({
     apiUrl,
