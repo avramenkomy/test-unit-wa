@@ -38,8 +38,8 @@ GREEN-API.
 ### 1. Клонирование репозитория
 
 ```bash
-git clone <repository-url>
-cd <project-directory>
+git clone https://github.com/avramenkomy/test-unit-wa.git
+cd test-unit-wa
 ```
 
 ### 2. Установка зависимостей
