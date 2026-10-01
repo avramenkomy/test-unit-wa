@@ -13,9 +13,15 @@ import NewChatForm from './components/NewChatForm';
 import './App.css';
 
 function App() {
-  const [apiUrl, setApiUrl] = useState('');
-  const [idInstance, setIdInstance] = useState('');
-  const [apiTokenInstance, setApiTokenInstance] = useState('');
+  const envApiUrl = import.meta.env.VITE_GREEN_API_URL ?? '';
+  const envIdInstance = import.meta.env.VITE_GREEN_API_ID_INSTANCE ?? '';
+  const envApiTokenInstance = import.meta.env.VITE_GREEN_API_TOKEN_INSTANCE ?? '';
+
+  const hasEnvCredentials = Boolean(envApiUrl && envIdInstance && envApiTokenInstance);
+
+  const [apiUrl, setApiUrl] = useState(envApiUrl);
+  const [idInstance, setIdInstance] = useState(envIdInstance);
+  const [apiTokenInstance, setApiTokenInstance] = useState(envApiTokenInstance);
   const [isStartedChat, setIsStartedChat] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [messages, setMessages] = useState([]);
@@ -24,7 +30,9 @@ function App() {
   const [result, setResult] = useState('');
 
 
-  const handleCheckInstance = async () => {
+
+
+  const handleCheckInstance = useCallback(async () => {
     try {
       setIsConnecting(true);
       setResult('');
@@ -33,12 +41,11 @@ function App() {
         apiUrl,
         idInstance,
         apiTokenInstance,
-      }
+      };
 
       const response = await getStateInstance(requestParams);
 
       if (response.stateInstance === 'authorized') {
-        // setResult('Instance state: authorized');
         setIsConnected(true);
         return;
       }
@@ -47,12 +54,15 @@ function App() {
     } catch (error) {
       console.error('Connection error: ', error);
 
-      setResult('Failed to connect. Please, check credentials for instance.');
+      setResult(
+        'Failed to connect. Please, check credentials for instance.'
+      );
+
       setIsConnected(false);
     } finally {
       setIsConnecting(false);
     }
-  };
+  }, [apiUrl, idInstance, apiTokenInstance]);
 
 
   const handleCreateChat = () => {
@@ -97,8 +107,6 @@ function App() {
 
 
   const handleIncomingMessage = useCallback((incomingMessage) => {
-    console.log('Incoming Message: ', incomingMessage);
-
     setMessages(prevState => [
       ...prevState,
       {
@@ -117,6 +125,17 @@ function App() {
   });
 
 
+  if (hasEnvCredentials && isConnecting) {
+    return (
+      <main className="app">
+        <div className="connection">
+          <p>Connecting to WhatsApp</p>
+        </div>
+      </main>
+    )
+  }
+
+
   if (!isConnected) {
     return (
       <main className="app">
@@ -129,6 +148,7 @@ function App() {
           onApiTokenInstanceChange={setApiTokenInstance}
           onConnect={handleCheckInstance}
           isConnecting={isConnecting}
+          hasEnvCredentials={hasEnvCredentials}
           result={result}
         />
       </main>

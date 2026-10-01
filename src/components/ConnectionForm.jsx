@@ -2,7 +2,7 @@ function ConnectionForm(props) {
   const {
     apiUrl, idInstance, apiTokenInstance,
     onApiUrlChange, onIdInstanceChange, onApiTokenInstanceChange,
-    onConnect, isConnecting, result,
+    onConnect, isConnecting, hasEnvCredentials, result,
   } = props;
 
   const handleSubmit = event => {
@@ -15,35 +15,37 @@ function ConnectionForm(props) {
       <form className="connection__form" onSubmit={handleSubmit}>
         <h1>Client like WhatsApp</h1>
 
-        <label>
-          API Url
-          <input
-            type="text"
-            value={apiUrl}
-            onChange={event => onApiUrlChange(event.target.value)}
-            required
-          />
-        </label>
+        {!hasEnvCredentials && <>
+          <label>
+            API Url
+            <input
+              type="text"
+              value={apiUrl}
+              onChange={event => onApiUrlChange(event.target.value)}
+              required
+            />
+          </label>
 
-        <label>
-          idInstance
-          <input
-            type="text"
-            value={idInstance}
-            onChange={event => onIdInstanceChange(event.target.value)}
-            required
-          />
-        </label>
+          <label>
+            idInstance
+            <input
+              type="text"
+              value={idInstance}
+              onChange={event => onIdInstanceChange(event.target.value)}
+              required
+            />
+          </label>
 
-        <label>
-          apiTokenInstance
-          <input
-            type="password"
-            value={apiTokenInstance}
-            onChange={event => onApiTokenInstanceChange(event.target.value)}
-            required
-          />
-        </label>
+          <label>
+            apiTokenInstance
+            <input
+              type="password"
+              value={apiTokenInstance}
+              onChange={event => onApiTokenInstanceChange(event.target.value)}
+              required
+            />
+          </label>
+        </>}
 
         <button type="submit" disabled={isConnecting}>
           {isConnecting ? 'Connecting...' : 'Connect'}
