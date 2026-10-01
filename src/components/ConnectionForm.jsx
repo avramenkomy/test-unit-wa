@@ -13,9 +13,20 @@ function ConnectionForm(props) {
   return (
     <div className="connection">
       <form className="connection__form" onSubmit={handleSubmit}>
-        <h1>Client like WhatsApp</h1>
+        <div className="connection__header">
+          <div className="connection__logo">WA</div>
 
-        {!hasEnvCredentials && <>
+          <h1>Client like WhatsApp</h1>
+
+          <p>
+            {hasEnvCredentials
+              ? 'Credentials has been loaded. Connect to start messaging.'
+              : 'Enter your GREEN-API credentials for connect.'
+            }
+          </p>
+        </div>
+
+        {!hasEnvCredentials && <div className="connection__fields">
           <label>
             API Url
             <input
@@ -45,13 +56,17 @@ function ConnectionForm(props) {
               required
             />
           </label>
-        </>}
+        </div>}
 
-        <button type="submit" disabled={isConnecting}>
+        {result && <p className="connection__result">{result}</p>}
+
+        <button
+          className="connection__button"
+          type="submit"
+          disabled={isConnecting}
+        >
           {isConnecting ? 'Connecting...' : 'Connect'}
         </button>
-
-        {result && <p>{result}</p>}
       </form>
     </div>
   )

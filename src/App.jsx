@@ -28,9 +28,7 @@ function App() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [result, setResult] = useState('');
-
-
-
+  
 
   const handleCheckInstance = useCallback(async () => {
     try {
