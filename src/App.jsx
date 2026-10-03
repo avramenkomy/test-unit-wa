@@ -3,12 +3,18 @@ import { useState, useCallback } from 'react';
 import { useNotifications } from './hooks/useNotifications';
 
 import {
-  sendMessage, getStateInstance,
+  sendMessage,
+  getStateInstance,
+  getAllChats,
+  getChatHistory,
 } from './api/greenApi';
+
+import { mapChatHistory } from './utils/mapChatHistory';
 
 import ConnectionForm from './components/ConnectionForm';
 import Chat from './components/Chat';
 import NewChatForm from './components/NewChatForm';
+import ChatsList from './components/ChatsList';
 
 import './App.css';
 
@@ -22,12 +28,37 @@ function App() {
   const [apiUrl, setApiUrl] = useState(envApiUrl);
   const [idInstance, setIdInstance] = useState(envIdInstance);
   const [apiTokenInstance, setApiTokenInstance] = useState(envApiTokenInstance);
-  const [isStartedChat, setIsStartedChat] = useState(false);
+
   const [phoneNumber, setPhoneNumber] = useState('');
   const [messages, setMessages] = useState([]);
+  const [chats, setChats] = useState([]);
+  const [activeChatId, setActiveChatId] = useState(null);
+
+  const [isStartedChat, setIsStartedChat] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+
   const [result, setResult] = useState('');
+
+
+  const handleGetAllChats = useCallback(async () => {
+    try {
+      const requestParams = {
+        apiUrl,
+        idInstance,
+        apiTokenInstance,
+      }
+
+      const response = await getAllChats(requestParams);
+
+      console.log('response all chats: ', response);
+      setChats(response);
+
+    } catch (error) {
+      console.error('Getting chats error: ', error);
+    }
+  }, [apiUrl, idInstance, apiTokenInstance]);
 
 
   const handleCheckInstance = useCallback(async () => {
@@ -45,6 +76,7 @@ function App() {
 
       if (response.stateInstance === 'authorized') {
         setIsConnected(true);
+        await handleGetAllChats();
         return;
       }
 
@@ -60,27 +92,62 @@ function App() {
     } finally {
       setIsConnecting(false);
     }
-  }, [apiUrl, idInstance, apiTokenInstance]);
+  }, [apiUrl, idInstance, apiTokenInstance, handleGetAllChats]);
+
+
+  const handleSelectChat = async chat => {
+    try {
+      setIsChatLoading(true);
+
+      const requestParams = {
+        apiUrl,
+        idInstance,
+        apiTokenInstance,
+        chatId: chat.id,
+        count: 50,
+      }
+
+      const response = await getChatHistory(requestParams);
+
+      const mappedHistory = mapChatHistory(response);
+
+      const selectedPhoneNumber = chat.id.replace('@c.us', '');
+
+      setPhoneNumber(selectedPhoneNumber);
+      setActiveChatId(chat.id);
+      setMessages(mappedHistory);
+      setIsStartedChat(true);
+
+      console.log('mappenChatHistory: ', mappedHistory);
+
+    } catch (error) {
+      console.error('Get chat history error: ', error);
+    } finally {
+      setIsChatLoading(false);
+    }
+  }
 
 
   const handleCreateChat = () => {
     const normalizedPhoneNumber = phoneNumber.replace(/\D/g, '');
+    const chatId = `${normalizedPhoneNumber}@c.us`;
 
     setPhoneNumber(normalizedPhoneNumber);
+    setActiveChatId(chatId);
     setMessages([]);
     setIsStartedChat(true);
   }
 
 
   const handleSendMessage = async text => {
-    try {
-      const chatId = `${phoneNumber.replace(/\D/g, '')}@c.us`;
+    if (!activeChatId) return;
 
+    try {
       const requestParams = {
         apiUrl,
         idInstance,
         apiTokenInstance,
-        chatId,
+        chatId: activeChatId,
         message: text,
       }
 
@@ -90,7 +157,7 @@ function App() {
         ...prevState,
         {
           id: response.idMessage,
-          chatId,
+          chatId: activeChatId,
           text,
           direction: 'outgoing',
           timestamp: Math.floor(Date.now() / 1000),
@@ -105,11 +172,7 @@ function App() {
 
 
   const handleIncomingMessage = useCallback((incomingMessage) => {
-    const activeChatId = `${phoneNumber.replace(/\D/g, '')}@c.us`;
-
-    if (incomingMessage.chatId !== activeChatId) {
-      return;
-    }
+    if (incomingMessage.chatId !== activeChatId) return;
 
     setMessages(prevState => [
       ...prevState,
@@ -118,7 +181,7 @@ function App() {
         direction: 'incoming'
       }
     ]);
-  }, [phoneNumber]);
+  }, [activeChatId]);
 
   useNotifications({
     apiUrl,
@@ -152,6 +215,7 @@ function App() {
   const handleCloseChat = () => {
     setIsStartedChat(false);
     setPhoneNumber('');
+    setActiveChatId(null);
     setMessages([]);
   }
 
@@ -173,20 +237,32 @@ function App() {
               onCreateChat={handleCreateChat}
             />
           )}
+
+          <ChatsList
+            chats={chats}
+            activeChatId={activeChatId}
+            isChatLoading={isChatLoading}
+            onSelectChat={handleSelectChat}
+          />
         </aside>
 
-        {isStartedChat
-          ? <Chat
-              phoneNumber={phoneNumber}
-              messages={messages}
-              onSend={handleSendMessage}
-              onClose={handleCloseChat}
-            />
-          : <section className="messenger__empty">
-              <h2>Client Is Like WhatsApp</h2>
-
-              <p>Enter target phone number, to begin chat</p>
+        {isChatLoading
+          ? <section className="messenger__empty">
+              <p>Loading chat...</p>
             </section>
+
+          : isStartedChat
+            ? <Chat
+                phoneNumber={phoneNumber}
+                messages={messages}
+                onSend={handleSendMessage}
+                onClose={handleCloseChat}
+              />
+
+            : <section className="messenger__empty">
+                <h2>Client Is Like WhatsApp</h2>
+                <p>Enter target phone number, to begin chat</p>
+              </section>
         }
       </div>
     </main>
