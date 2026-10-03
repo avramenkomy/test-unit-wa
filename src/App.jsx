@@ -33,6 +33,7 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
+  const [activeContactName, setActiveContactName] = useState('');
 
   const [isStartedChat, setIsStartedChat] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -114,11 +115,12 @@ function App() {
       const selectedPhoneNumber = chat.id.replace('@c.us', '');
 
       setPhoneNumber(selectedPhoneNumber);
+      setActiveContactName(chat?.name || '');
       setActiveChatId(chat.id);
       setMessages(mappedHistory);
       setIsStartedChat(true);
 
-      console.log('mappenChatHistory: ', mappedHistory);
+      console.log('mappenChatHistory: ', mappedHistory, chat);
 
     } catch (error) {
       console.error('Get chat history error: ', error);
@@ -133,6 +135,7 @@ function App() {
     const chatId = `${normalizedPhoneNumber}@c.us`;
 
     setPhoneNumber(normalizedPhoneNumber);
+    setActiveContactName('');
     setActiveChatId(chatId);
     setMessages([]);
     setIsStartedChat(true);
@@ -215,6 +218,7 @@ function App() {
   const handleCloseChat = () => {
     setIsStartedChat(false);
     setPhoneNumber('');
+    setActiveContactName('');
     setActiveChatId(null);
     setMessages([]);
   }
@@ -254,6 +258,7 @@ function App() {
           : isStartedChat
             ? <Chat
                 phoneNumber={phoneNumber}
+                activeContactName={activeContactName}
                 messages={messages}
                 onSend={handleSendMessage}
                 onClose={handleCloseChat}

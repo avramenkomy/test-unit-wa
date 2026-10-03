@@ -1,4 +1,5 @@
-function ChatHeader({ phoneNumber, onClose }) {
+function ChatHeader({ phoneNumber, activeContactName, onClose }) {
+  const contactTitle = activeContactName || `+${phoneNumber}`;
   return (
     <header className="chat-header">
       <button
@@ -9,11 +10,18 @@ function ChatHeader({ phoneNumber, onClose }) {
       >&larr;</button>
 
       <div className="chat-header__avatar">
-        {phoneNumber.slice(-2)}
+        {activeContactName
+          ? activeContactName
+              .split(' ')
+              .map(item => item[0])
+              .join('')
+              .toUpperCase()
+          : '?'
+        }
       </div>
 
       <div>
-        <strong>LikeWhatsApp</strong>
+        <strong>{contactTitle}</strong>
         <p>+{phoneNumber}</p>
       </div>
     </header>
