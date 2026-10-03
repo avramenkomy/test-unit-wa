@@ -33,10 +33,7 @@ export const useNotifications = ({
 
             if (!isActive) return;
 
-            if (!notification) {
-              await new Promise(res => setTimeout(res, 500));
-              continue;
-            };
+            if (!notification) continue;
 
             const { receiptId, body } = notification;
 

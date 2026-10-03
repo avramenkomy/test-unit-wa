@@ -39,11 +39,19 @@ export const sendMessage = async ({
 export const receiveNotification = async ({
   apiUrl, idInstance, apiTokenInstance,
 }) => {
-  const url = `${apiUrl}/waInstance${idInstance}/receiveNotification/${apiTokenInstance}?receiveTimeout=15`;
+  try {
+    const url = `${apiUrl}/waInstance${idInstance}/receiveNotification/${apiTokenInstance}?receiveTimeout=30`;
 
-  const response = await axios.get(url);
+    const response = await axios.get(url);
 
-  return response.data;
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 408) {
+      return null;
+    }
+
+    throw error;
+  }
 }
 
 
