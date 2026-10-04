@@ -176,6 +176,26 @@ function App() {
         }
       ]);
 
+      // обновление превью чата после отправки сообщения
+      setChats(prevState => {
+        const chat = prevState.find(itemChat => itemChat.id === activeChatId);
+
+        // для нового чата, который отсутствует в списке чатов
+        if (!chat) return prevState;
+
+        const updatedChat = {
+          ...chat,
+          lastMessage: text,
+          lastMessageTimestamp: Math.floor(Date.now() / 1000),
+        }
+
+        // Поднятие чата вверх списка
+        return [
+          updatedChat,
+          ...prevState.filter(itemChat => itemChat.id !== activeChatId),
+        ]
+      });
+
     } catch (error) {
       console.error('Send message error: ', error);
       throw error;
@@ -185,9 +205,36 @@ function App() {
 
   // Обработка входящего сообщения:
   // - добавление сообщения в открытый чат
+  // - обновление последнего сообщения в списке чатов
   // - увеличения счетчика непрочитанных сообщений для другого чата
+  // - перемещение чата с новым сообщение в начало списка
   const handleIncomingMessage = useCallback(incomingMessage => {
-    const { chatId } = incomingMessage;
+    const { chatId, text, timestamp } = incomingMessage;
+    const isActiveChat = chatId === activeChatId;
+
+    // Обновление информации о чате, в который пришло сообщение
+    setChats(prevState => {
+      const chat = prevState.find(itemChat => itemChat.id === chatId);
+
+      // Для чата, которого нет в списке ничего не обновляется
+      if (!chat) return;
+
+      const updatedChat = {
+        ...chat,
+        lastMessage: text,
+        lastMessageTimestamp: timestamp || Math.floor(Date.now() / 1000),
+        unreadCount: isActiveChat
+          ? (chat.unreadCount || 0)
+          : (chat.unreadCount || 0) + 1,
+      }
+
+      // Перемещение чата в начало списка
+      return [
+        updatedChat,
+        ...prevState.filter(itemChat => itemChat.id !== chatId),
+      ];
+    });
+
 
     // Сообщение, приходящее в открытый чат, добавляется в историю сообщений
     if (chatId === activeChatId) {
@@ -201,17 +248,6 @@ function App() {
 
       return;
     }
-
-    // Для неоткрытого чата, в который пришло сообщение увеличивается счетчик
-    // Функциональное обновление позволяет учитывать только актуальное состояние
-    // списка чатов.
-    setChats(prevState =>
-      prevState.map(chat =>
-        chat.id === chatId
-          ? { ...chat, unreadCount: (chat.unreadCount || 0 ) + 1}
-          : chat
-      )
-    );
   }, [activeChatId]);
 
   useNotifications({
