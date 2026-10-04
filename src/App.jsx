@@ -120,6 +120,15 @@ function App() {
       setMessages(mappedHistory);
       setIsStartedChat(true);
 
+      // тут добавляется обнуление непрочитанных сообщений
+      setChats(prevState =>
+        prevState.map(item =>
+          item.id === chat.id
+            ? { ...item, unreadCount: 0 }
+            : item
+        )
+      );
+
       console.log('mappenChatHistory: ', mappedHistory, chat);
 
     } catch (error) {
@@ -174,16 +183,35 @@ function App() {
   }
 
 
-  const handleIncomingMessage = useCallback((incomingMessage) => {
-    if (incomingMessage.chatId !== activeChatId) return;
+  // Обработка входящего сообщения:
+  // - добавление сообщения в открытый чат
+  // - увеличения счетчика непрочитанных сообщений для другого чата
+  const handleIncomingMessage = useCallback(incomingMessage => {
+    const { chatId } = incomingMessage;
 
-    setMessages(prevState => [
-      ...prevState,
-      {
-        ...incomingMessage,
-        direction: 'incoming'
-      }
-    ]);
+    // Сообщение, приходящее в открытый чат, добавляется в историю сообщений
+    if (chatId === activeChatId) {
+      setMessages(prevState => [
+        ...prevState,
+        {
+          ...incomingMessage,
+          direction: 'incoming',
+        }
+      ]);
+
+      return;
+    }
+
+    // Для неоткрытого чата, в который пришло сообщение увеличивается счетчик
+    // Функциональное обновление позволяет учитывать только актуальное состояние
+    // списка чатов.
+    setChats(prevState =>
+      prevState.map(chat =>
+        chat.id === chatId
+          ? { ...chat, unreadCount: (chat.unreadCount || 0 ) + 1}
+          : chat
+      )
+    );
   }, [activeChatId]);
 
   useNotifications({
