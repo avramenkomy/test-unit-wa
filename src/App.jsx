@@ -9,12 +9,17 @@ import {
   getChatHistory,
 } from './api/greenApi';
 
-import { mapChatHistory } from './utils/mapChatHistory';
+import { mapChatHistory, sleep } from './utils';
 
 import ConnectionForm from './components/ConnectionForm';
 import Chat from './components/Chat';
 import NewChatForm from './components/NewChatForm';
 import ChatsList from './components/ChatsList';
+
+import {
+  CHATS_PREVIEW_LIMIT,
+  CHAT_HISTORY_REQUEST_DELAY
+} from './constants';
 
 import './App.css';
 
@@ -43,6 +48,36 @@ function App() {
   const [result, setResult] = useState('');
 
 
+  const getChatLastMessage = useCallback(async chat => {
+    try {
+      const requestParams = {
+        apiUrl,
+        idInstance,
+        apiTokenInstance,
+        chatId: chat.id,
+        count: 1,
+      }
+
+      const response = await getChatHistory(requestParams);
+      const mappedMessages = mapChatHistory(response, chat.id);
+      const lastMessage = mappedMessages[0];
+
+      if (!lastMessage) return chat;
+
+      return {
+        ...chat,
+        lastMessage: lastMessage.text,
+        lastMessageTimestamp: lastMessage.timestamp,
+      }
+    } catch (error) {
+      console.error('', error);
+      return chat;
+    }
+  },
+    [apiUrl, idInstance, apiTokenInstance]
+  );
+
+
   const handleGetAllChats = useCallback(async () => {
     try {
       const requestParams = {
@@ -53,13 +88,42 @@ function App() {
 
       const response = await getAllChats(requestParams);
 
-      console.log('response all chats: ', response);
+      // Сразу показываеются все чаты без превью
       setChats(response);
+
+      console.log('response all chats: ', response);
+
+      // Т.к. GREEN_API не возвращает последнее сообщение для каждого чата,
+      // отдельно нужно получить последнее сообщение из истории чата.
+      // Превью загружается последовательно во избежание
+      // ошибки 429 Too Many Requests
+      const chatsForPreview = response.slice(0, CHATS_PREVIEW_LIMIT);
+
+      for (const [index, chat] of chatsForPreview.entries()) {
+        const chatWithLastMessage = await getChatLastMessage(chat);
+
+        setChats(prevState =>
+          prevState.map(itemChat =>
+            itemChat.id === chatWithLastMessage.id
+              ? {
+                  ...itemChat,
+                  lastMessage: chatWithLastMessage.lastMessage,
+                  lastMessageTimestamp: chatWithLastMessage.lastMessageTimestamp,
+                }
+              : itemChat,
+          )
+        );
+
+        // пауза между запросами
+        if (index < chatsForPreview.length - 1) {
+          await sleep(CHAT_HISTORY_REQUEST_DELAY);
+        }
+      }
 
     } catch (error) {
       console.error('Getting chats error: ', error);
     }
-  }, [apiUrl, idInstance, apiTokenInstance]);
+  }, [apiUrl, idInstance, apiTokenInstance, getChatLastMessage]);
 
 
   const handleCheckInstance = useCallback(async () => {
@@ -217,7 +281,7 @@ function App() {
       const chat = prevState.find(itemChat => itemChat.id === chatId);
 
       // Для чата, которого нет в списке ничего не обновляется
-      if (!chat) return;
+      if (!chat) return prevState;
 
       const updatedChat = {
         ...chat,

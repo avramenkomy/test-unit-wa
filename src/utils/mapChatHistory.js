@@ -13,7 +13,7 @@
  *
  * @returns {Array<object>} массив с приведенными объектами сообщений.
  */
-export const mapChatHistory = history => {
+export default function mapChatHistory (history) {
   return history
     .filter(msg => msg.textMessage)
     .map(msg => ({
